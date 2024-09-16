@@ -19,6 +19,14 @@ if [ ! -z "$INPUT_KEY" ] && [ "$INPUT_KEY" != "" ]; then
   mkdir -p $HOME/.ssh
   echo "$INPUT_KEY" > $HOME/.ssh/deploykey
   chmod 0600 $HOME/.ssh/deploykey
+  echo "Deploy key is $(cat $HOME/.ssh/deploykey)"
+  res=$(ssh -i $HOME/.ssh/deploykey -p $INPUT_PORT -o StrictHostKeyChecking=no $INPUT_USERNAME@$INPUT_HOST "echo 'Deploy key is set'")
+  if [ "$res" = "Deploy key is set" ]; then
+    echo "Deploy key is set"
+  else
+    echo "Deploy key is not set"
+    exit 1
+  fi
   echo "Done!! 🍻"
   if [ ! -z "$INPUT_PASSWORD" ] && [ "$INPUT_PASSWORD" != "" ]; then
     INPUT_KEY="" # Hack to save us from Error: can't set password and key at the same time
@@ -99,7 +107,6 @@ fi
 # Execute SSH Commands to create backups first
 #----------------------------------------
 echo "🏃‍♂️ Running commands over ssh..."
-sh -c "/bin/drone-ssh $*"
 
 #----------------------------------------
 # Rsync the backup files to container
@@ -112,8 +119,11 @@ if [ ! -z "$INPUT_DB_TYPE" ] && [ "$INPUT_DB_TYPE" != "" ]; then
     mkdir $BACKUP_DIR
   fi
 
-  echo "🔄 Sync the $INPUT_DB_TYPE backups... 🗄"
-  sh -c "rsync --remove-source-files -avzhe 'ssh -i $HOME/.ssh/deploykey -p $INPUT_PORT -o StrictHostKeyChecking=no' --progress $INPUT_USERNAME@$INPUT_HOST:./$INPUT_DB_TYPE* ./$BACKUP_DIR/"
+  echo "🔄 Copying the $INPUT_DB_TYPE backups... 🗄"
+  ssh -i $HOME/.ssh/deploykey -p $INPUT_PORT -o StrictHostKeyChecking=no $INPUT_USERNAME@$INPUT_HOST "ls ./$INPUT_DB_TYPE*" | while read file; do
+    scp -i $HOME/.ssh/deploykey -P $INPUT_PORT -o StrictHostKeyChecking=no $INPUT_USERNAME@$INPUT_HOST:"./$file" "./$BACKUP_DIR/"
+    ssh -i $HOME/.ssh/deploykey -p $INPUT_PORT -o StrictHostKeyChecking=no $INPUT_USERNAME@$INPUT_HOST "rm ./$file"
+  done
 
   echo "🤔 Whats the location of backups..."
   CURR_DIR=$(pwd)
