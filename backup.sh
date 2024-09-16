@@ -19,7 +19,6 @@ if [ ! -z "$INPUT_KEY" ] && [ "$INPUT_KEY" != "" ]; then
   mkdir -p $HOME/.ssh
   echo "$INPUT_KEY" > $HOME/.ssh/deploykey
   chmod 0600 $HOME/.ssh/deploykey
-  echo "Deploy key is $(cat $HOME/.ssh/deploykey)"
   res=$(ssh -i $HOME/.ssh/deploykey -p $INPUT_PORT -o StrictHostKeyChecking=no $INPUT_USERNAME@$INPUT_HOST "echo 'Deploy key is set'")
   if [ "$res" = "Deploy key is set" ]; then
     echo "Deploy key is set"
