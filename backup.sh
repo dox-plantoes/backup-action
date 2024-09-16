@@ -7,7 +7,7 @@ set -eu
 #----------------------------------------
 export GITHUB="true" # Required for appleboy/drone-ssh
 THEDATE=`date +%d%m%y%H%M`
-BACKUP_DIR="backups"
+# BACKUP_DIR="backups"
 INPUT_PASS=""
 EXTRA_SCRIPT=""
 
@@ -118,8 +118,8 @@ if [ ! -z "$INPUT_DB_TYPE" ] && [ "$INPUT_DB_TYPE" != "" ]; then
   #----------------------------------------
   # CREATE DESTINATION DIR IF NOT EXISTS
   #----------------------------------------
-  if [ ! -d ./$BACKUP_DIR/ ]; then
-    mkdir $BACKUP_DIR
+  if [ ! -d $BACKUP_DIR ]; then
+    mkdir -p $BACKUP_DIR
   fi
 
   echo "🔄 Copying the $INPUT_DB_TYPE backups... 🗄"
