@@ -67,9 +67,7 @@ if [ "$INPUT_TYPE" = "db" ]; then
       fi
 
       INPUT_SCRIPT="mysqldump -q -u $INPUT_DB_USER -P $INPUT_DB_PORT $INPUT_PASS $INPUT_ARGS $INPUT_DB_NAME | gzip -9 > $FILENAME ${EXTRA_SCRIPT}"
-    fi
-
-    if [ "$INPUT_DB_TYPE" = "mongo" ]; then
+    elif [ "$INPUT_DB_TYPE" = "mongo" ]; then
       FILENAME=$INPUT_DB_TYPE-$INPUT_DB_NAME.$THEDATE.tgz
       INPUT_DB_PORT="${INPUT_DB_PORT:-27017}"
       INPUT_AUTH_DB="${INPUT_AUTH_DB:-admin}"
@@ -80,14 +78,14 @@ if [ "$INPUT_TYPE" = "db" ]; then
       fi
 
       INPUT_SCRIPT="mongodump --port=$INPUT_DB_PORT -d $INPUT_DB_NAME -u $INPUT_DB_USER $INPUT_PASS --authenticationDatabase=$INPUT_AUTH_DB $INPUT_ARGS && tar -cvzf $FILENAME backmon/$INPUT_DB_NAME ${EXTRA_SCRIPT}"
-    fi
-
-    if [ "$INPUT_DB_TYPE" = "postgres" ]; then
+    elif [ "$INPUT_DB_TYPE" = "postgres" ]; then
       FILENAME=$INPUT_DB_TYPE-$INPUT_DB_NAME.$THEDATE.pgsql.gz
       INPUT_DB_PORT="${INPUT_DB_PORT:-5432}"
       INPUT_ARGS="${INPUT_ARGS} -C --column-inserts"
       INPUT_SCRIPT="PGPASSWORD='$INPUT_DB_PASS' pg_dump -U $INPUT_DB_USER -h $INPUT_DB_HOST $INPUT_ARGS $INPUT_DB_NAME | gzip -9 > $FILENAME ${EXTRA_SCRIPT}"
+      echo "🚀 Running pg_dump... with $INPUT_SCRIPT"
     fi
+    
 fi
 
 if [ "$INPUT_TYPE" = "directory" ]; then
@@ -106,7 +104,7 @@ fi
 # Execute SSH Commands to create backups first
 #----------------------------------------
 echo "🏃‍♂️ Running commands over ssh..."
-
+ssh -i $HOME/.ssh/deploykey -p $INPUT_PORT -o StrictHostKeyChecking=no $INPUT_USERNAME@$INPUT_HOST $INPUT_SCRIPT
 #----------------------------------------
 # Rsync the backup files to container
 #----------------------------------------
