@@ -100,6 +100,12 @@ if [ "$INPUT_TYPE" = "directory" ]; then
     fi
 fi
 
+if [ -z "$INPUT_SCRIPT" ]; then
+  echo "😔 script is not set, Please specify script."
+  exit 1
+fi
+echo "🚀 Running $INPUT_SCRIPT"
+
 #----------------------------------------
 # Execute SSH Commands to create backups first
 #----------------------------------------
